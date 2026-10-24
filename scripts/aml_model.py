@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import importlib.metadata
+import importlib.util
 import json
 import math
 import platform
@@ -131,7 +132,8 @@ def grouped_cv(x, y, groups, context, annotations) -> tuple[dict, np.ndarray]:
     return report, oof2
 
 
-def wallet_stress(transactions, x, y, groups, context, annotations, recompute: bool) -> dict:
+def wallet_stress(transactions, x, y, groups, context, annotations, recompute: bool,
+                  modules: list[Path] = ()) -> dict:
     """Secondary protocol: the baseline's seed-0 wallet split with scenario/cohort purging.
 
     recompute=False keeps full-week features (as used for test); recompute=True rebuilds
@@ -149,7 +151,11 @@ def wallet_stress(transactions, x, y, groups, context, annotations, recompute: b
         parts = {}
         for name, rows in (("fit", fit_rows), ("holdout", eval_rows)):
             subset = transactions.set_index("TRANSACTION_HASH").loc[x.index[rows]].reset_index()
-            parts[name] = (compute_features(subset), ScoreContext(subset))
+            base = compute_features(subset)
+            extras = extra_features(None, subset, list(modules))
+            features = pd.concat([base, *extras], axis=1) if extras else base
+            require(list(features.columns) == list(x.columns), "Stress features differ from training")
+            parts[name] = (features, ScoreContext(subset))
         xf, cf = parts["fit"]
         xh, ch = parts["holdout"]
         yf = annotations.is_suspicious.loc[xf.index].to_numpy()
@@ -198,10 +204,45 @@ def write_predictions(path: Path, index: pd.Index, scores: np.ndarray, expected:
     require(np.array_equal(reread.score.to_numpy(), scores), "Scores changed during serialization")
 
 
+EXTRA_MODULES: list[Path] = []  # optional add-on feature modules: compute(transactions) -> DataFrame
+
+
+def extra_features(split: str | None, transactions: pd.DataFrame,
+                   modules: list[Path] | None = None) -> list[pd.DataFrame]:
+    """Label-free add-on features from each module, cached per split and module content hash.
+
+    split=None computes without caching (used for the isolated stress-test subsets).
+    """
+    frames = []
+    for module_path in (EXTRA_MODULES if modules is None else modules):
+        digest = sha256(module_path)[:16]
+        cache = output_path(f"extra_features/{module_path.stem}_{digest}/{split}.parquet") if split else None
+        if cache is not None and cache.exists():
+            frame = pd.read_parquet(cache).set_index("TRANSACTION_HASH")
+        else:
+            spec = importlib.util.spec_from_file_location(f"extra_{module_path.stem}", module_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            frame = module.compute(transactions.copy()).astype("float64")
+            frame.index.name = "TRANSACTION_HASH"
+            if cache is not None:
+                cache.parent.mkdir(parents=True, exist_ok=True)
+                frame.reset_index().to_parquet(cache, index=False)
+        frame = frame.reindex(pd.Index(transactions.TRANSACTION_HASH))
+        require(frame.index.is_unique and len(frame) == len(transactions), f"{module_path} row coverage")
+        require(not np.isinf(frame.to_numpy()).any(), f"{module_path} infinite values")
+        frames.append(frame.add_prefix(f"{module_path.stem}__"))
+    return frames
+
+
 def load_world(split: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     transactions = pd.read_parquet(output_path(f"{TABLE_RUN}/{split}/transactions.parquet"))
     features = pd.read_parquet(output_path(f"{FEATURE_RUN}/{split}/features.parquet")).set_index("TRANSACTION_HASH")
     require(features.index.equals(pd.Index(transactions.TRANSACTION_HASH)), f"{split} feature alignment")
+    extras = extra_features(split, transactions)
+    if extras:
+        features = pd.concat([features, *extras], axis=1)
+        require(features.columns.is_unique, "Duplicate feature names")
     return transactions, features
 
 
@@ -219,7 +260,7 @@ def run(output_dir: Path, report_path: Path, validate: bool) -> dict:
     y = annotations.is_suspicious.to_numpy()
     groups = scenario_groups(annotations)
     context = ScoreContext(transactions)
-    report: dict = {"run_id": f"aml_two_stage_hgb_{FEATURE_RUN.removeprefix('aml_features_')}", "seed": SEED, "model_parameters": MODEL_PARAMS,
+    report: dict = {"run_id": output_dir.name, "seed": SEED, "model_parameters": MODEL_PARAMS,
                     "algorithm": "sklearn HistGradientBoostingClassifier, two stages",
                     "n_features_stage1": x.shape[1]}
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -229,7 +270,8 @@ def run(output_dir: Path, report_path: Path, validate: bool) -> dict:
             print("grouped CV", json.dumps(report["grouped_cv"]["stage2"]), flush=True)
             write_predictions(output_dir / "train_oof_predictions.csv", x.index, oof, x.index)
             stress = Parallel(n_jobs=2)(
-                delayed(_limited)(wallet_stress, transactions, x, y, groups, context, annotations, recompute)
+                delayed(_limited)(wallet_stress, transactions, x, y, groups, context, annotations, recompute,
+                                  list(EXTRA_MODULES))
                 for recompute in (False, True))
             for key, result in zip(("wallet_stress_full_week", "wallet_stress_isolated"), stress):
                 report[key] = result
@@ -256,6 +298,8 @@ def run(output_dir: Path, report_path: Path, validate: bool) -> dict:
     sources = [Path(__file__), ROOT / "feature_workspace/aml_features.py",
                ROOT / "feature_workspace/score_context.py", TRAIN / "labels.csv"]
     report["source_sha256"] = {str(p.relative_to(ROOT)): sha256(p) for p in sources}
+    report["extra_modules"] = {str(p): sha256(p) for p in EXTRA_MODULES}
+    report["feature_run"] = FEATURE_RUN
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2) + "\n")
     (output_dir / "metrics.json").write_text(json.dumps(report, indent=2) + "\n")
@@ -267,7 +311,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=ROOT / "outputs/aml_two_stage_v2")
     parser.add_argument("--report", type=Path, default=ROOT / "reports/aml_model_metrics_v2.json")
+    parser.add_argument("--feature-run", default=FEATURE_RUN, help="base feature run under generated/")
+    parser.add_argument("--extra-module", type=Path, action="append", default=[],
+                        help="add-on feature module with compute(transactions); repeatable")
     parser.add_argument("--skip-validation", action="store_true",
                         help="Only fit the final model and write test predictions")
     args = parser.parse_args()
+    FEATURE_RUN = args.feature_run
+    EXTRA_MODULES[:] = [path.resolve() for path in args.extra_module]
     run(args.output_dir, args.report, validate=not args.skip_validation)

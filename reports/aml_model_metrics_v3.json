@@ -1,0 +1,43 @@
+{
+  "run_id": "aml_two_stage_v3",
+  "seed": 0,
+  "model_parameters": {
+    "learning_rate": 0.05,
+    "max_iter": 400,
+    "max_leaf_nodes": 31,
+    "min_samples_leaf": 20,
+    "l2_regularization": 1.0
+  },
+  "algorithm": "sklearn HistGradientBoostingClassifier, two stages",
+  "n_features_stage1": 358,
+  "test_predictions": {
+    "rows": 40101,
+    "distinct_scores": 40101,
+    "min": 3.856280981344986e-05,
+    "max": 0.9991936396605632,
+    "mean": 0.023070391020822947,
+    "share_above_0.5": 0.019351138375601606,
+    "sha256": "f647f48a5cbe27085cfc469fb47a3ffdbadef37d64dce17111f6866c69d81a98"
+  },
+  "versions": {
+    "numpy": "2.2.6",
+    "pandas": "2.3.0",
+    "pyarrow": "23.0.0",
+    "scikit-learn": "1.7.2",
+    "joblib": "1.5.3",
+    "threadpoolctl": "3.6.0"
+  },
+  "python": "3.10.15",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "seconds": 162.2,
+  "source_sha256": {
+    "scripts/aml_model.py": "7fcff200237874d1b0215679987b56bb4a4b2af06f4f5f5b7290139aac53f9af",
+    "feature_workspace/aml_features.py": "875f5832b4509437e62aa84e1b7020e63b9c2e17adee3961e1bfaabf92ed9c6b",
+    "feature_workspace/score_context.py": "efd85e80508b914851a44dc98eaebfd3e50bd0695209f9af62fbc44f5f2c3e2e",
+    "data/traning_data/train/labels.csv": "48536b768622b0dc61ee487f750c874f1d9dbc820fc1c30ccc1af87db395a94b"
+  },
+  "extra_modules": {
+    "/Users/Konstantyn/nicholas/hackathon/xrpl_test1/feature_workspace/scenario_recon_features.py": "9f19d5aa9d0d1c150c5146028594e90894e7c8805898f30bbf8e324ee22cd7db"
+  },
+  "feature_run": "aml_features_v2"
+}

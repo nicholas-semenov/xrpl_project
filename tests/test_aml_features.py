@@ -9,7 +9,7 @@ import pandas as pd
 from feature_workspace.aml_features import _asset_parts, compute_features
 from feature_workspace.prepare_transactions import COLUMNS
 from feature_workspace.score_context import ScoreContext
-from scripts.aml_model import scenario_groups, write_predictions
+from scripts.aml_model import extra_features, scenario_groups, write_predictions
 
 
 def payments(records, asset="XRP"):
@@ -116,6 +116,19 @@ class ScoreContextTests(unittest.TestCase):
 
 
 class ModelHelperTests(unittest.TestCase):
+    def test_extra_feature_modules_are_prefixed_and_aligned(self):
+        tx = payments(BACKGROUND + [("ab", 1000, "A", "B", 100.)])
+        with tempfile.TemporaryDirectory() as tmp:
+            module = Path(tmp) / "addon.py"
+            module.write_text("import numpy as np\n"
+                              "def compute(tx):\n"
+                              "    out = tx.set_index('TRANSACTION_HASH')[['DESTINATION_AMOUNT_USD']]\n"
+                              "    return np.log(out.rename(columns={'DESTINATION_AMOUNT_USD': 'lv'})).iloc[::-1]\n")
+            (frame,) = extra_features(None, tx, [module])
+        self.assertEqual(list(frame.columns), ["addon__lv"])
+        self.assertEqual(list(frame.index), list(tx.TRANSACTION_HASH))   # realigned to input order
+        self.assertAlmostEqual(frame.loc["ab", "addon__lv"], np.log(100.))
+
     def test_groups_and_prediction_round_trip(self):
         ann = pd.DataFrame({"scenario_id": ["s1", None, "s1"]}, index=["a", "b", "c"])
         self.assertEqual(scenario_groups(ann).tolist(), ["s1", "tx:b", "s1"])

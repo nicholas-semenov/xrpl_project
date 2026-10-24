@@ -1,5 +1,18 @@
 # XRPL AML scoring
 
+## Latest submission v3 (v2 + scenario-instance features)
+
+```sh
+.venv/bin/python -m feature_workspace.prepare_transactions
+.venv/bin/python -m feature_workspace.aml_features --run-name aml_features_v2
+.venv/bin/python scripts/aml_model.py --skip-validation \
+  --extra-module feature_workspace/scenario_recon_features.py \
+  --output-dir outputs/aml_two_stage_v3 --report reports/aml_model_metrics_v3.json
+# writes outputs/aml_two_stage_v3/predictions.csv (~3 min)
+```
+
+`feature_workspace/scenario_recon_features.py` (32 label-free features) reconstructs candidate motif instances from non-recurring wallet pairs, i.e. pairs with no other interaction more than 6 h away, linked through consecutive same-wallet events at 3–60 min scales, and adds instance statistics and each payment's role in its instance. Stage-1 scenario-grouped CV (2 seeds): AP 0.6305 vs 0.6163 for v2 (+0.014; medium median rank 0.924 → 0.951). This was measured by the research agent and has not yet been independently audited. The full two-stage validation was skipped for this submission because of time.
+
 ## Current model: two-stage AML scorer (`aml_two_stage_hgb_v2`)
 
 Produce the test predictions CSV from the supplied data (Python 3.10.15, `requirements-baseline.txt`; about 5 minutes and under 2 GB RAM per process on an Apple M-series arm64 laptop, of which validation is about 3; folds run in 5 parallel processes). First unpack the organiser packages so that `data/traning_data/` holds the training package (`train/`, `validation/`, `payments.py`) and `data/test_data/` holds the four test files. Licence: [MIT](LICENSE); third-party code, libraries and AI assistance are listed in [ATTRIBUTION.md](ATTRIBUTION.md).
