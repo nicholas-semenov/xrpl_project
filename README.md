@@ -2,9 +2,11 @@
 
 ## Current model: two-stage AML scorer (`aml_two_stage_hgb_v1`)
 
-Produce the test predictions CSV from the supplied data (Python 3.10.15, `requirements-baseline.txt`; about 6 minutes on an Apple arm64 laptop, of which validation is about 5):
+Produce the test predictions CSV from the supplied data (Python 3.10.15, `requirements-baseline.txt`; about 6 minutes and under 2 GB RAM on an Apple M-series arm64 laptop, of which validation is about 5). First unpack the organiser packages so that `data/traning_data/` holds the training package (`train/`, `validation/`, `payments.py`) and `data/test_data/` holds the four test files. Licence: [MIT](LICENSE); third-party code, libraries and AI assistance are listed in [ATTRIBUTION.md](ATTRIBUTION.md).
 
 ```sh
+python3.10 -m venv .venv
+.venv/bin/python -m pip install --no-cache-dir -r requirements-baseline.txt
 .venv/bin/python -m feature_workspace.prepare_transactions   # canonical payments, all splits
 .venv/bin/python -m feature_workspace.aml_features           # 198 label-free features per payment
 .venv/bin/python scripts/aml_model.py                        # validate, fit, write predictions
