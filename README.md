@@ -1,4 +1,32 @@
-# XRPL AML scoring: first baseline
+# XRPL AML scoring
+
+## Current model: two-stage AML scorer (`aml_two_stage_hgb_v1`)
+
+Produce the test predictions CSV from the supplied data (Python 3.10.15, `requirements-baseline.txt`; about 6 minutes on an Apple arm64 laptop, of which validation is about 5):
+
+```sh
+.venv/bin/python -m feature_workspace.prepare_transactions   # canonical payments, all splits
+.venv/bin/python -m feature_workspace.aml_features           # 198 label-free features per payment
+.venv/bin/python scripts/aml_model.py                        # validate, fit, write predictions
+# writes outputs/aml_two_stage_v1/predictions.csv (TRANSACTION_HASH,score; 40,101 rows)
+# add --skip-validation to only fit and predict (~1 minute)
+```
+
+Method: stage 1 is a `HistGradientBoostingClassifier` (learning rate 0.05, 400 iterations, 31 leaves, min leaf 20, L2 1.0, seed 0) on the [AML features](feature_workspace/README.md#aml-behaviour-flow-and-motif-features). These cover wallet and pair behaviour, windowed pass-through flows, amount-consistent temporal chains, cycles, scatter-gather, bipartite butterflies and multi-scale burst clusters. Stage 2 is the same estimator with extra features: the max and mean stage-1 scores of each payment's graph neighbours (same-wallet events, chain neighbours, burst-cluster members). For labelled rows those stage-1 scores are nested out-of-fold, so no context feature contains a score fitted on that row's own label. Test features and contexts are computed only from the test week. The whole supplied window is used, as the dataset README allows (offline investigation, not causal live detection). Labels and scenario/cohort IDs never enter features. Scenario IDs only define CV folds.
+
+Measured on labelled train only (`reports/aml_model_metrics.json`):
+
+| Protocol | Stage-1 AP | Stage-2 AP | ROC-AUC | Top-1% precision |
+|---|---:|---:|---:|---:|
+| Scenario-grouped 5-fold CV, full train week (primary; closest to test conditions) | 0.5792 | **0.5942** | 0.8963 | 0.871 (350/402) |
+| Baseline wallet split, full-week features | 0.4436 | 0.4600 | 0.8356 | 0.735 (75/102) |
+| Baseline wallet split, features recomputed in isolated fit/holdout subsets (like-for-like with the baseline's 0.0836) | 0.2526 | **0.2592** | 0.7789 | 0.549 (56/102) |
+
+Stage-2 fold APs range from 0.573 to 0.661 (mean 0.602, std 0.031). Median positive rank percentile: easy 0.987, medium 0.922, hard 0.619. The hard relay families score near chance, and the 25 "ambiguous" positives are label-independent by design. Main remaining errors are planted look-alike (decoy) scenarios and background payments that touch a motif wallet during a burst. A repeat `--skip-validation` run reproduced a byte-identical predictions CSV (SHA-256 `a73fdac8…`). Multi-threaded and single-threaded runs gave identical fold metrics. Model selection (feature-group ablation and a HistGradientBoosting vs LightGBM comparison, all within ±0.01 AP) used the same grouped CV. That makes the grouped-CV figure somewhat optimistic; the wallet-isolated figure is a pessimistic stress test because 62% of rows are purged. No test leaderboard score has been measured.
+
+The earlier starter baseline below is preserved unchanged for comparison.
+
+# First baseline (starter logistic regression)
 
 Feature preparation has a separate [workspace](feature_workspace/README.md). Keep source datasets in `data/` as inputs and write derived tables only under `feature_workspace/generated/`, using the checked paths in `feature_workspace/paths.py`.
 
