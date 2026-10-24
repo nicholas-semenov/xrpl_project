@@ -1,0 +1,17 @@
+{
+  "train": {
+    "rows": 40131,
+    "features": 198,
+    "seconds": 14.8
+  },
+  "validation": {
+    "rows": 33862,
+    "features": 198,
+    "seconds": 11.8
+  },
+  "test": {
+    "rows": 40101,
+    "features": 198,
+    "seconds": 14.6
+  }
+}

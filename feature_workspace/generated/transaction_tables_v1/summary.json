@@ -1,0 +1,779 @@
+{
+  "command": ".venv/bin/python -m feature_workspace.prepare_transactions",
+  "run_name": "transaction_tables_v1",
+  "columns": [
+    "TRANSACTION_HASH",
+    "TIMESTAMP",
+    "SENDER",
+    "RECEIVER",
+    "SOURCE_ASSET",
+    "SOURCE_AMOUNT",
+    "DESTINATION_ASSET",
+    "DESTINATION_AMOUNT",
+    "SOURCE_AMOUNT_USD",
+    "DESTINATION_AMOUNT_USD",
+    "TRANSFER_COUNT",
+    "IS_CONVERSION",
+    "CONVERSION_STEP_COUNT",
+    "INTERMEDIARY_COUNT",
+    "FEE_XRP"
+  ],
+  "versions": {
+    "numpy": "2.2.6",
+    "pandas": "2.3.0",
+    "pyarrow": "23.0.0"
+  },
+  "code_sha256": "d9a049c6a97082ff76e1b15cea233ec96f1f06d27df602596fa9ffc7d9cffd01",
+  "splits": {
+    "train": {
+      "total_transactions": 40131,
+      "conversion_transactions": 16450,
+      "total_conversion_steps": 20426,
+      "non_conversion_transactions": 23681,
+      "conversion_percentage": 40.990755276469564,
+      "conversion_step_distribution": {
+        "0": 23681,
+        "1": 12474,
+        "2": 3976
+      },
+      "transfer_count_distribution": {
+        "1": 23681,
+        "2": 12474,
+        "3": 3976
+      },
+      "intermediary_count_distribution": {
+        "0": 23681,
+        "1": 12474,
+        "2": 3976
+      },
+      "same_endpoint_asset_with_conversion": 0,
+      "most_common_asset_pairs": [
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "XRP",
+          "count": 9668
+        },
+        {
+          "SOURCE_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:GBP",
+          "DESTINATION_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:GBP",
+          "count": 4611
+        },
+        {
+          "SOURCE_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:EUR",
+          "DESTINATION_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:EUR",
+          "count": 3233
+        },
+        {
+          "SOURCE_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:USD",
+          "DESTINATION_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:USD",
+          "count": 3178
+        },
+        {
+          "SOURCE_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:USD",
+          "DESTINATION_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:USD",
+          "count": 2991
+        },
+        {
+          "SOURCE_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:EUR",
+          "DESTINATION_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:GBP",
+          "count": 895
+        },
+        {
+          "SOURCE_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:USD",
+          "DESTINATION_ASSET": "XRP",
+          "count": 890
+        },
+        {
+          "SOURCE_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:USD",
+          "DESTINATION_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:GBP",
+          "count": 879
+        },
+        {
+          "SOURCE_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:USD",
+          "DESTINATION_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:USD",
+          "count": 879
+        },
+        {
+          "SOURCE_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:USD",
+          "DESTINATION_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:EUR",
+          "count": 876
+        }
+      ],
+      "most_common_conversion_asset_pairs": [
+        {
+          "SOURCE_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:EUR",
+          "DESTINATION_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:GBP",
+          "count": 895
+        },
+        {
+          "SOURCE_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:USD",
+          "DESTINATION_ASSET": "XRP",
+          "count": 890
+        },
+        {
+          "SOURCE_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:USD",
+          "DESTINATION_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:GBP",
+          "count": 879
+        },
+        {
+          "SOURCE_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:USD",
+          "DESTINATION_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:USD",
+          "count": 879
+        },
+        {
+          "SOURCE_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:USD",
+          "DESTINATION_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:EUR",
+          "count": 876
+        },
+        {
+          "SOURCE_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:GBP",
+          "DESTINATION_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:USD",
+          "count": 863
+        },
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:USD",
+          "count": 855
+        },
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:USD",
+          "count": 831
+        },
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:EUR",
+          "count": 829
+        },
+        {
+          "SOURCE_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:GBP",
+          "DESTINATION_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:EUR",
+          "count": 829
+        }
+      ],
+      "paths": {
+        "transactions": "feature_workspace/generated/transaction_tables_v1/train/transactions.parquet",
+        "transfer_legs": "feature_workspace/generated/transaction_tables_v1/train/transfer_legs.parquet"
+      },
+      "input_sha256": {
+        "data/traning_data/train/transactions.parquet": "d592b91c766a408fb7da5c54c04f36f358dcf137ba6ef870575f22e0900ff783",
+        "data/traning_data/train/transfers.parquet": "658bbb2d4b3bc7724dbcc7e8ad4b80d344b01fcc2ce4875b75880fa065c39c18",
+        "data/traning_data/train/market_rates.csv": "cf596d85265294c9faa9bd707739c14d4e11d20a6e3ce4e3b507488c79ed6458"
+      },
+      "output_sha256": {
+        "feature_workspace/generated/transaction_tables_v1/train/transactions.parquet": "68128bcce859dd0d9af847e18f6ff4e539fb2f69c712dc87bfb11001d5aa7ad4",
+        "feature_workspace/generated/transaction_tables_v1/train/transfer_legs.parquet": "c0e13bfeb0ebcde91d5b974dfb2e4d6ec9ef3a3174ea77908b60c11c4c7e2109"
+      },
+      "checks": {
+        "exact_transaction_coverage_and_order": true,
+        "raw_leg_schema_and_values_preserved": true,
+        "leg_path_and_destination_json_match": true,
+        "value_units_verified": true,
+        "missing_endpoint_rates": 0,
+        "all_destination_usd_match_supplied_helper": true,
+        "input_files_unchanged": true
+      },
+      "sample_transactions": [
+        {
+          "TRANSACTION_HASH": "954736A6E1BB5A3433EB916D8221F2DF5938A521EA2222F2BD03281056365896",
+          "TIMESTAMP": 1788718916,
+          "SENDER": "r3CWFt1SXiykW92LwKU19CvfTFcFRnbnDY",
+          "RECEIVER": "rMWFzNYApzeKVcHyXGSUz2XQpuHmSA11kU",
+          "SOURCE_ASSET": "XRP",
+          "SOURCE_AMOUNT": 1167.18447,
+          "DESTINATION_ASSET": "XRP",
+          "DESTINATION_AMOUNT": 1167.18447,
+          "SOURCE_AMOUNT_USD": 762.4982705616,
+          "DESTINATION_AMOUNT_USD": 762.4982705616,
+          "TRANSFER_COUNT": 1,
+          "IS_CONVERSION": false,
+          "CONVERSION_STEP_COUNT": 0,
+          "INTERMEDIARY_COUNT": 0,
+          "FEE_XRP": 1e-05,
+          "category": "direct_xrp",
+          "asset_sequence": [
+            "XRP"
+          ],
+          "SOURCE_PRICE_USD": 0.65328,
+          "DESTINATION_PRICE_USD": 0.65328,
+          "reference_hour_utc": "2026-09-06 18:00:00+00:00"
+        },
+        {
+          "TRANSACTION_HASH": "E46BFC5EC409B486E1C97F20BCB62AE96432B20937D265AE31966B5402E6C57A",
+          "TIMESTAMP": 1788737068,
+          "SENDER": "rJxqpGRZ2bJtB1Q8HYCV9iPon9HpvJugZm",
+          "RECEIVER": "rsSAFra1UVoobuNrQzh7HJHepjvSTkHyAM",
+          "SOURCE_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:EUR",
+          "SOURCE_AMOUNT": 1.715004,
+          "DESTINATION_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:EUR",
+          "DESTINATION_AMOUNT": 1.715004,
+          "SOURCE_AMOUNT_USD": 1.885881853548,
+          "DESTINATION_AMOUNT_USD": 1.885881853548,
+          "TRANSFER_COUNT": 1,
+          "IS_CONVERSION": false,
+          "CONVERSION_STEP_COUNT": 0,
+          "INTERMEDIARY_COUNT": 0,
+          "FEE_XRP": 1.5e-05,
+          "category": "direct_iou",
+          "asset_sequence": [
+            "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:EUR"
+          ],
+          "SOURCE_PRICE_USD": 1.099637,
+          "DESTINATION_PRICE_USD": 1.099637,
+          "reference_hour_utc": "2026-09-06 23:00:00+00:00"
+        },
+        {
+          "TRANSACTION_HASH": "E9549020D2717DB401CA4C30BB82500758ABF100600D9CD35F792C952A53AC2A",
+          "TIMESTAMP": 1788707968,
+          "SENDER": "rwWTLZeD4QEMAiJ4QsmVgeWDJj6NMrw4Bx",
+          "RECEIVER": "rGkwo8Zrgj3hMT61iswFgnxGTs3ALKEgCU",
+          "SOURCE_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:USD",
+          "SOURCE_AMOUNT": 104.674336,
+          "DESTINATION_ASSET": "XRP",
+          "DESTINATION_AMOUNT": 163.125642,
+          "SOURCE_AMOUNT_USD": 106.40062514931199,
+          "DESTINATION_AMOUNT_USD": 106.35808170964201,
+          "TRANSFER_COUNT": 2,
+          "IS_CONVERSION": true,
+          "CONVERSION_STEP_COUNT": 1,
+          "INTERMEDIARY_COUNT": 1,
+          "FEE_XRP": 1e-05,
+          "category": "one_conversion_step",
+          "asset_sequence": [
+            "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:USD",
+            "XRP"
+          ],
+          "SOURCE_PRICE_USD": 1.016492,
+          "DESTINATION_PRICE_USD": 0.652001,
+          "reference_hour_utc": "2026-09-06 15:00:00+00:00"
+        },
+        {
+          "TRANSACTION_HASH": "E7CAB61BBDAC502147EF393C7EA93A2A937DA3F01623E2F5AFD1399C17929AAF",
+          "TIMESTAMP": 1788574820,
+          "SENDER": "rnEiuUDCbbsMqipLBQvUvkQyjhcM1vDtHB",
+          "RECEIVER": "rP5qUwE6qmTDzME7kqjP4CGAb8v9x17QE6",
+          "SOURCE_ASSET": "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:GBP",
+          "SOURCE_AMOUNT": 9.496353,
+          "DESTINATION_ASSET": "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:USD",
+          "DESTINATION_AMOUNT": 12.323166,
+          "SOURCE_AMOUNT_USD": 12.497874789063,
+          "DESTINATION_AMOUNT_USD": 12.425731710618,
+          "TRANSFER_COUNT": 3,
+          "IS_CONVERSION": true,
+          "CONVERSION_STEP_COUNT": 2,
+          "INTERMEDIARY_COUNT": 2,
+          "FEE_XRP": 1.2e-05,
+          "category": "two_conversion_steps",
+          "asset_sequence": [
+            "r99vy4o5fXhC3PwEXEpnc1f9Mss4aCzYBW:GBP",
+            "XRP",
+            "rLeMq5iFyEhgHLfBxeu4eRQWEGGdeL8hXK:USD"
+          ],
+          "SOURCE_PRICE_USD": 1.316071,
+          "DESTINATION_PRICE_USD": 1.008323,
+          "reference_hour_utc": "2026-09-05 02:00:00+00:00"
+        }
+      ]
+    },
+    "validation": {
+      "total_transactions": 33862,
+      "conversion_transactions": 17798,
+      "total_conversion_steps": 22035,
+      "non_conversion_transactions": 16064,
+      "conversion_percentage": 52.560392180024806,
+      "conversion_step_distribution": {
+        "0": 16064,
+        "1": 13561,
+        "2": 4237
+      },
+      "transfer_count_distribution": {
+        "1": 16064,
+        "2": 13561,
+        "3": 4237
+      },
+      "intermediary_count_distribution": {
+        "0": 16064,
+        "1": 13561,
+        "2": 4237
+      },
+      "same_endpoint_asset_with_conversion": 0,
+      "most_common_asset_pairs": [
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "XRP",
+          "count": 8609
+        },
+        {
+          "SOURCE_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:USD",
+          "DESTINATION_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:USD",
+          "count": 2607
+        },
+        {
+          "SOURCE_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:USD",
+          "DESTINATION_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:USD",
+          "count": 1692
+        },
+        {
+          "SOURCE_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:GBP",
+          "DESTINATION_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:GBP",
+          "count": 1592
+        },
+        {
+          "SOURCE_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:EUR",
+          "DESTINATION_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:EUR",
+          "count": 1564
+        },
+        {
+          "SOURCE_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:USD",
+          "DESTINATION_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:USD",
+          "count": 954
+        },
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:GBP",
+          "count": 950
+        },
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:USD",
+          "count": 941
+        },
+        {
+          "SOURCE_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:EUR",
+          "DESTINATION_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:USD",
+          "count": 940
+        },
+        {
+          "SOURCE_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:USD",
+          "DESTINATION_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:EUR",
+          "count": 932
+        }
+      ],
+      "most_common_conversion_asset_pairs": [
+        {
+          "SOURCE_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:USD",
+          "DESTINATION_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:USD",
+          "count": 954
+        },
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:GBP",
+          "count": 950
+        },
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:USD",
+          "count": 941
+        },
+        {
+          "SOURCE_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:EUR",
+          "DESTINATION_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:USD",
+          "count": 940
+        },
+        {
+          "SOURCE_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:USD",
+          "DESTINATION_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:EUR",
+          "count": 932
+        },
+        {
+          "SOURCE_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:GBP",
+          "DESTINATION_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:EUR",
+          "count": 915
+        },
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:EUR",
+          "count": 909
+        },
+        {
+          "SOURCE_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:USD",
+          "DESTINATION_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:USD",
+          "count": 904
+        },
+        {
+          "SOURCE_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:USD",
+          "DESTINATION_ASSET": "XRP",
+          "count": 901
+        },
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:USD",
+          "count": 897
+        }
+      ],
+      "paths": {
+        "transactions": "feature_workspace/generated/transaction_tables_v1/validation/transactions.parquet",
+        "transfer_legs": "feature_workspace/generated/transaction_tables_v1/validation/transfer_legs.parquet"
+      },
+      "input_sha256": {
+        "data/traning_data/validation/transactions.parquet": "f6b2134fcd518da41990aa17f43b608f00718d6a949f53a7472adf0fa3b7f752",
+        "data/traning_data/validation/transfers.parquet": "0f42451783cd08850c11c9dbf7ff4b58378cb1b5c4f6d1c00f040680b993b443",
+        "data/traning_data/validation/market_rates.csv": "a7ca1a281cbcde61becdef65a89f44fe6880b7dafb55a47c5ce09ac94d038669"
+      },
+      "output_sha256": {
+        "feature_workspace/generated/transaction_tables_v1/validation/transactions.parquet": "0504e2e07be0b57c41ddeb9c11e61f0f00feaa814f394f17fafc08d99897706f",
+        "feature_workspace/generated/transaction_tables_v1/validation/transfer_legs.parquet": "80920ad95fcd34251594c797a40285f540021a12feea51d8fe668fdbd9c797d8"
+      },
+      "checks": {
+        "exact_transaction_coverage_and_order": true,
+        "raw_leg_schema_and_values_preserved": true,
+        "leg_path_and_destination_json_match": true,
+        "value_units_verified": true,
+        "missing_endpoint_rates": 0,
+        "all_destination_usd_match_supplied_helper": true,
+        "input_files_unchanged": true
+      },
+      "sample_transactions": [
+        {
+          "TRANSACTION_HASH": "30E96AF1ECECA809FEC7F8C34C6A17A9A8C37BCEDE6A0E1E2FF3F04CD3282BCC",
+          "TIMESTAMP": 1789397828,
+          "SENDER": "rJRyrNA2VYh39ZDZoofTufHM74fL9DQXam",
+          "RECEIVER": "rPVRmb6QShf6JP9uWbiy7aRypN2hyDAgpj",
+          "SOURCE_ASSET": "XRP",
+          "SOURCE_AMOUNT": 51.533626,
+          "DESTINATION_ASSET": "XRP",
+          "DESTINATION_AMOUNT": 51.533626,
+          "SOURCE_AMOUNT_USD": 33.635791555696,
+          "DESTINATION_AMOUNT_USD": 33.635791555696,
+          "TRANSFER_COUNT": 1,
+          "IS_CONVERSION": false,
+          "CONVERSION_STEP_COUNT": 0,
+          "INTERMEDIARY_COUNT": 0,
+          "FEE_XRP": 1.5e-05,
+          "category": "direct_xrp",
+          "asset_sequence": [
+            "XRP"
+          ],
+          "SOURCE_PRICE_USD": 0.652696,
+          "DESTINATION_PRICE_USD": 0.652696,
+          "reference_hour_utc": "2026-09-14 14:00:00+00:00"
+        },
+        {
+          "TRANSACTION_HASH": "15D5BBB1C3CE2FFD4DDFD44095F4BF8D73604B8160AD4615EF01205023D16D81",
+          "TIMESTAMP": 1789114096,
+          "SENDER": "rGw1H2T3b9ZCmSCNYoBP7G7Q1DrSbc7AHN",
+          "RECEIVER": "r9BmmVwkLWrxyCJRTNy6kjAshkx4YyGdt2",
+          "SOURCE_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:USD",
+          "SOURCE_AMOUNT": 54.847869,
+          "DESTINATION_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:USD",
+          "DESTINATION_AMOUNT": 54.847869,
+          "SOURCE_AMOUNT_USD": 55.296689112027,
+          "DESTINATION_AMOUNT_USD": 55.296689112027,
+          "TRANSFER_COUNT": 1,
+          "IS_CONVERSION": false,
+          "CONVERSION_STEP_COUNT": 0,
+          "INTERMEDIARY_COUNT": 0,
+          "FEE_XRP": 1e-05,
+          "category": "direct_iou",
+          "asset_sequence": [
+            "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:USD"
+          ],
+          "SOURCE_PRICE_USD": 1.008183,
+          "DESTINATION_PRICE_USD": 1.008183,
+          "reference_hour_utc": "2026-09-11 08:00:00+00:00"
+        },
+        {
+          "TRANSACTION_HASH": "431A1B69CB5C3D4DAA5B7D99BA22F6D6CD9B549D3D949856C7956A080A168B49",
+          "TIMESTAMP": 1789264244,
+          "SENDER": "rpvkiQJUwtEYUowkpLojBjrUgxjkm2nQ7w",
+          "RECEIVER": "r98o351sbBeANcn3KQvKJShBkcn5mnYbex",
+          "SOURCE_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:GBP",
+          "SOURCE_AMOUNT": 20.924894,
+          "DESTINATION_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:USD",
+          "DESTINATION_AMOUNT": 27.043222,
+          "SOURCE_AMOUNT_USD": 27.238269318104,
+          "DESTINATION_AMOUNT_USD": 27.097362530444002,
+          "TRANSFER_COUNT": 2,
+          "IS_CONVERSION": true,
+          "CONVERSION_STEP_COUNT": 1,
+          "INTERMEDIARY_COUNT": 1,
+          "FEE_XRP": 1.2e-05,
+          "category": "one_conversion_step",
+          "asset_sequence": [
+            "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:GBP",
+            "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:USD"
+          ],
+          "SOURCE_PRICE_USD": 1.301716,
+          "DESTINATION_PRICE_USD": 1.002002,
+          "reference_hour_utc": "2026-09-13 01:00:00+00:00"
+        },
+        {
+          "TRANSACTION_HASH": "0B9814737A9E79CFE6341BAF228B197C2816875AC4537E980A3E4BD0D87907D6",
+          "TIMESTAMP": 1789195084,
+          "SENDER": "rwxwwBJzZYociLyizhakfjDZ8XfSrg7Zfw",
+          "RECEIVER": "rsM7rNz8nVej8W1RPe2TCtY3Vp4w9hmo2f",
+          "SOURCE_ASSET": "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:USD",
+          "SOURCE_AMOUNT": 184.058507,
+          "DESTINATION_ASSET": "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:GBP",
+          "DESTINATION_AMOUNT": 140.134063,
+          "SOURCE_AMOUNT_USD": 183.96150816681097,
+          "DESTINATION_AMOUNT_USD": 183.082070360114,
+          "TRANSFER_COUNT": 3,
+          "IS_CONVERSION": true,
+          "CONVERSION_STEP_COUNT": 2,
+          "INTERMEDIARY_COUNT": 2,
+          "FEE_XRP": 1.2e-05,
+          "category": "two_conversion_steps",
+          "asset_sequence": [
+            "rwKVMHDA73raYeKwGjfMiWSjzeF59HwPxG:USD",
+            "XRP",
+            "rUz26aCT6t4jAf5Guo78dv3bXRjFNWSgQs:GBP"
+          ],
+          "SOURCE_PRICE_USD": 0.999473,
+          "DESTINATION_PRICE_USD": 1.306478,
+          "reference_hour_utc": "2026-09-12 06:00:00+00:00"
+        }
+      ]
+    },
+    "test": {
+      "total_transactions": 40101,
+      "conversion_transactions": 20261,
+      "total_conversion_steps": 25171,
+      "non_conversion_transactions": 19840,
+      "conversion_percentage": 50.52492456547218,
+      "conversion_step_distribution": {
+        "0": 19840,
+        "1": 15351,
+        "2": 4910
+      },
+      "transfer_count_distribution": {
+        "1": 19840,
+        "2": 15351,
+        "3": 4910
+      },
+      "intermediary_count_distribution": {
+        "0": 19840,
+        "1": 15351,
+        "2": 4910
+      },
+      "same_endpoint_asset_with_conversion": 0,
+      "most_common_asset_pairs": [
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "XRP",
+          "count": 10557
+        },
+        {
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:EUR",
+          "DESTINATION_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:EUR",
+          "count": 2908
+        },
+        {
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:USD",
+          "DESTINATION_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:USD",
+          "count": 2248
+        },
+        {
+          "SOURCE_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:GBP",
+          "DESTINATION_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:GBP",
+          "count": 2067
+        },
+        {
+          "SOURCE_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:USD",
+          "DESTINATION_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:USD",
+          "count": 2060
+        },
+        {
+          "SOURCE_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:GBP",
+          "DESTINATION_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:USD",
+          "count": 1133
+        },
+        {
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:USD",
+          "DESTINATION_ASSET": "XRP",
+          "count": 1088
+        },
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:USD",
+          "count": 1072
+        },
+        {
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:USD",
+          "DESTINATION_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:GBP",
+          "count": 1068
+        },
+        {
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:EUR",
+          "DESTINATION_ASSET": "XRP",
+          "count": 1047
+        }
+      ],
+      "most_common_conversion_asset_pairs": [
+        {
+          "SOURCE_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:GBP",
+          "DESTINATION_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:USD",
+          "count": 1133
+        },
+        {
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:USD",
+          "DESTINATION_ASSET": "XRP",
+          "count": 1088
+        },
+        {
+          "SOURCE_ASSET": "XRP",
+          "DESTINATION_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:USD",
+          "count": 1072
+        },
+        {
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:USD",
+          "DESTINATION_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:GBP",
+          "count": 1068
+        },
+        {
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:EUR",
+          "DESTINATION_ASSET": "XRP",
+          "count": 1047
+        },
+        {
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:USD",
+          "DESTINATION_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:USD",
+          "count": 1041
+        },
+        {
+          "SOURCE_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:USD",
+          "DESTINATION_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:GBP",
+          "count": 1040
+        },
+        {
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:USD",
+          "DESTINATION_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:EUR",
+          "count": 1029
+        },
+        {
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:EUR",
+          "DESTINATION_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:GBP",
+          "count": 1018
+        },
+        {
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:EUR",
+          "DESTINATION_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:USD",
+          "count": 1013
+        }
+      ],
+      "paths": {
+        "transactions": "feature_workspace/generated/transaction_tables_v1/test/transactions.parquet",
+        "transfer_legs": "feature_workspace/generated/transaction_tables_v1/test/transfer_legs.parquet"
+      },
+      "input_sha256": {
+        "data/test_data/transactions.parquet": "2196aadaa7cc7f1c095551aa30156aff069784d8428060d0474c50dc83cf8863",
+        "data/test_data/transfers.parquet": "61e922d367ed4809a978807014ce0aeeedf9f1cefe920a4266b957d8bfc31412",
+        "data/test_data/market_rates.csv": "fa03c4682da2bf9ba6574811017fd7f49f20b4e3a79d0e4b96ef8fb8a957e559"
+      },
+      "output_sha256": {
+        "feature_workspace/generated/transaction_tables_v1/test/transactions.parquet": "e601dbe06f0bd7d8c84dabe9bf1f45683a02733c4fab1c52ae191e70ac738c36",
+        "feature_workspace/generated/transaction_tables_v1/test/transfer_legs.parquet": "3a2fe20c9bf6aff5fb6a2236858b63c61517e045404d346c7872ea4f8db6fba0"
+      },
+      "checks": {
+        "exact_transaction_coverage_and_order": true,
+        "raw_leg_schema_and_values_preserved": true,
+        "leg_path_and_destination_json_match": true,
+        "value_units_verified": true,
+        "missing_endpoint_rates": 0,
+        "all_destination_usd_match_supplied_helper": true,
+        "input_files_unchanged": true
+      },
+      "sample_transactions": [
+        {
+          "TRANSACTION_HASH": "A3C443F37501A2CF20E2375BB7DDC43B6794C41C1496DA10B0F9B4344AF8CA30",
+          "TIMESTAMP": 1790367412,
+          "SENDER": "rwjMER1uwm6YTAsn1zr5VQLm2eJrr8o43t",
+          "RECEIVER": "rhqBktpYLbzkNBgWXcMPfFLYZCtxJCNkCk",
+          "SOURCE_ASSET": "XRP",
+          "SOURCE_AMOUNT": 13.980514,
+          "DESTINATION_ASSET": "XRP",
+          "DESTINATION_AMOUNT": 13.980514,
+          "SOURCE_AMOUNT_USD": 8.979851908368,
+          "DESTINATION_AMOUNT_USD": 8.979851908368,
+          "TRANSFER_COUNT": 1,
+          "IS_CONVERSION": false,
+          "CONVERSION_STEP_COUNT": 0,
+          "INTERMEDIARY_COUNT": 0,
+          "FEE_XRP": 1.2e-05,
+          "category": "direct_xrp",
+          "asset_sequence": [
+            "XRP"
+          ],
+          "SOURCE_PRICE_USD": 0.642312,
+          "DESTINATION_PRICE_USD": 0.642312,
+          "reference_hour_utc": "2026-09-25 20:00:00+00:00"
+        },
+        {
+          "TRANSACTION_HASH": "C782CF5A3196B3773CFC54A96D44FBEE6124A363EE12AE4F8DD0D485D2C1B540",
+          "TIMESTAMP": 1789919712,
+          "SENDER": "rLWDqBE8AX5xgTai5uG8kvfsWYXtakZ4bK",
+          "RECEIVER": "r3qXHiqXDqYpxFi5jHamN8oHoEYsQ5T61y",
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:EUR",
+          "SOURCE_AMOUNT": 136.729824,
+          "DESTINATION_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:EUR",
+          "DESTINATION_AMOUNT": 136.729824,
+          "SOURCE_AMOUNT_USD": 151.330244796192,
+          "DESTINATION_AMOUNT_USD": 151.330244796192,
+          "TRANSFER_COUNT": 1,
+          "IS_CONVERSION": false,
+          "CONVERSION_STEP_COUNT": 0,
+          "INTERMEDIARY_COUNT": 0,
+          "FEE_XRP": 1e-05,
+          "category": "direct_iou",
+          "asset_sequence": [
+            "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:EUR"
+          ],
+          "SOURCE_PRICE_USD": 1.106783,
+          "DESTINATION_PRICE_USD": 1.106783,
+          "reference_hour_utc": "2026-09-20 15:00:00+00:00"
+        },
+        {
+          "TRANSACTION_HASH": "5825C09B741CBA72EC0F4AECCF9FCB0694B8FB6714F3430020FC14B26887EC15",
+          "TIMESTAMP": 1790152316,
+          "SENDER": "rPEZM6LvS7n37eB9sxGuxezcyPzNEsbVzV",
+          "RECEIVER": "rHFo7t5cgsbYkYDmgQ4pAQGjgtqGnnC1L",
+          "SOURCE_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:GBP",
+          "SOURCE_AMOUNT": 14.186099,
+          "DESTINATION_ASSET": "XRP",
+          "DESTINATION_AMOUNT": 28.58941,
+          "SOURCE_AMOUNT_USD": 18.345264621414,
+          "DESTINATION_AMOUNT_USD": 18.24310264687,
+          "TRANSFER_COUNT": 2,
+          "IS_CONVERSION": true,
+          "CONVERSION_STEP_COUNT": 1,
+          "INTERMEDIARY_COUNT": 1,
+          "FEE_XRP": 1.2e-05,
+          "category": "one_conversion_step",
+          "asset_sequence": [
+            "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:GBP",
+            "XRP"
+          ],
+          "SOURCE_PRICE_USD": 1.293186,
+          "DESTINATION_PRICE_USD": 0.638107,
+          "reference_hour_utc": "2026-09-23 08:00:00+00:00"
+        },
+        {
+          "TRANSACTION_HASH": "9D428A89342F561C37859E9434D6AE894961054A8CD04A8ECBC0AE39E5D84769",
+          "TIMESTAMP": 1789962080,
+          "SENDER": "rLu8B4Ei5S7MTz921BQhJ2QaYV7pv8cS36",
+          "RECEIVER": "rNqJ9981mBL8Q1kLawD1q1CF6KJ7gntnnY",
+          "SOURCE_ASSET": "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:EUR",
+          "SOURCE_AMOUNT": 1.68616,
+          "DESTINATION_ASSET": "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:USD",
+          "DESTINATION_AMOUNT": 1.868822,
+          "SOURCE_AMOUNT_USD": 1.8531235632,
+          "DESTINATION_AMOUNT_USD": 1.84776037606,
+          "TRANSFER_COUNT": 3,
+          "IS_CONVERSION": true,
+          "CONVERSION_STEP_COUNT": 2,
+          "INTERMEDIARY_COUNT": 2,
+          "FEE_XRP": 1.5e-05,
+          "category": "two_conversion_steps",
+          "asset_sequence": [
+            "rNnBxvYbzhfnR6d8dLDRHRVVHgagj6aLVh:EUR",
+            "XRP",
+            "rDafjsQScwoVYNW1Sg91oe1ALkvqvK2LTW:USD"
+          ],
+          "SOURCE_PRICE_USD": 1.09902,
+          "DESTINATION_PRICE_USD": 0.98873,
+          "reference_hour_utc": "2026-09-21 03:00:00+00:00"
+        }
+      ]
+    }
+  }
+}

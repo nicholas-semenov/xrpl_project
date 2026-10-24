@@ -1,0 +1,16 @@
+{
+  "split": "test",
+  "graph_type": "directed_multigraph",
+  "edge_key": "TRANSACTION_HASH",
+  "edge_order": [
+    "TIMESTAMP",
+    "TRANSACTION_HASH"
+  ],
+  "wallet_nodes": 700,
+  "transaction_edges": 40101,
+  "prepared_input_sha256": "e601dbe06f0bd7d8c84dabe9bf1f45683a02733c4fab1c52ae191e70ac738c36",
+  "artifact_sha256": {
+    "edges.parquet": "972d337a714044817d6bf027765f6d1a8c079eecdaf73d1559a70af85342ac74",
+    "nodes.parquet": "f4da4ff200a364bec25f046898996375b346989e7fb9d7298312e1fc126637a0"
+  }
+}

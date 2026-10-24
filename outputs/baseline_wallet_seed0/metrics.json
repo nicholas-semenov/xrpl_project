@@ -1,0 +1,174 @@
+{
+  "run_id": "starter_logistic_wallet_seed0",
+  "seed": 0,
+  "algorithm": "StandardScaler + balanced L2 LogisticRegression",
+  "model_parameters": {
+    "C": 1.0,
+    "class_weight": "balanced",
+    "dual": false,
+    "fit_intercept": true,
+    "intercept_scaling": 1,
+    "l1_ratio": null,
+    "max_iter": 1000,
+    "multi_class": "deprecated",
+    "n_jobs": null,
+    "penalty": "l2",
+    "random_state": 0,
+    "solver": "lbfgs",
+    "tol": 0.0001,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "features": [
+    "log_value",
+    "sender_payments",
+    "receiver_payments",
+    "receiver_forwards_1h",
+    "sender_received_1h_before",
+    "sender_burst_10m",
+    "receiver_burst_10m",
+    "receiver_forwards_similar_1h",
+    "sender_received_similar_1h",
+    "receiver_minutes_to_forward",
+    "sender_pass_through",
+    "receiver_pass_through"
+  ],
+  "split_protocol": {
+    "holdout_wallet_fraction": 0.5,
+    "wallet_assignment": "sorted wallets, numpy default_rng(seed).permutation",
+    "purging": "Cross-wallet payments removed; fit rows sharing holdout scenario_id or cohort_id removed",
+    "feature_context": "Separately retained fit / holdout payments; full window; purged rows excluded",
+    "target_used_for_split": false,
+    "counts": {
+      "fit": {
+        "transactions": 4949,
+        "positives": 169,
+        "positive_fraction": 0.03414831279046272,
+        "scenarios": 95,
+        "cohorts": 0
+      },
+      "holdout": {
+        "transactions": 10112,
+        "positives": 262,
+        "positive_fraction": 0.025909810126582278,
+        "scenarios": 924,
+        "cohorts": 12
+      },
+      "purged": {
+        "transactions": 25070,
+        "positives": 819,
+        "positive_fraction": 0.03266852812126047,
+        "scenarios": 1472,
+        "cohorts": 12
+      }
+    },
+    "purge_reasons": {
+      "cross_wallet": 19979,
+      "shared_cohort_id": 3965,
+      "shared_scenario_id": 1126
+    },
+    "fit_wallets": 350,
+    "holdout_wallets": 350,
+    "wallet_overlap": 0,
+    "annotation_group_overlaps": {
+      "scenario_id": 0,
+      "cohort_id": 0
+    },
+    "transaction_overlap": 0
+  },
+  "metrics": {
+    "average_precision": 0.08358397603315604,
+    "challenge_score_100_ap": 8.358397603315604,
+    "roc_auc": 0.734895570969117,
+    "precision_at_1pct": 0.1568627450980392,
+    "recall_at_1pct": 0.061068702290076333,
+    "top_1pct_count": 102,
+    "top_1pct_true_positives": 16,
+    "holdout_positives": 262,
+    "holdout_positive_fraction": 0.025909810126582278,
+    "score_min": 1.229296101512473e-05,
+    "score_max": 0.9995207453401656,
+    "distinct_scores": 10112
+  },
+  "annotation_diagnostics_only": {
+    "fit": {
+      "difficulty_counts": {
+        "normal": 4780,
+        "easy": 147,
+        "hard": 12,
+        "medium": 10
+      }
+    },
+    "holdout": {
+      "difficulty_counts": {
+        "normal": 9850,
+        "easy": 159,
+        "medium": 86,
+        "hard": 17
+      }
+    },
+    "purged": {
+      "difficulty_counts": {
+        "normal": 24251,
+        "easy": 494,
+        "hard": 196,
+        "medium": 129
+      }
+    }
+  },
+  "standardized_coefficients": {
+    "log_value": 1.20119937606338,
+    "sender_payments": -1.1097508502213915,
+    "receiver_payments": -0.6749841356054392,
+    "receiver_forwards_1h": -1.1771441309128476,
+    "sender_received_1h_before": 0.35646962385053654,
+    "sender_burst_10m": 0.7899248756642985,
+    "receiver_burst_10m": 0.6635054125333564,
+    "receiver_forwards_similar_1h": 0.005559896894000702,
+    "sender_received_similar_1h": 0.14248297437289273,
+    "receiver_minutes_to_forward": -1.2056768580390755,
+    "sender_pass_through": 0.20748286046450098,
+    "receiver_pass_through": 0.18183775243776315
+  },
+  "intercept": -2.153206686893751,
+  "solver_iterations": [
+    17
+  ],
+  "versions": {
+    "numpy": "2.2.6",
+    "pandas": "2.3.0",
+    "pyarrow": "23.0.0",
+    "scipy": "1.13.1",
+    "scikit-learn": "1.7.2",
+    "joblib": "1.5.3",
+    "threadpoolctl": "3.6.0"
+  },
+  "python": "3.10.15",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "blas_threads": 1,
+  "timings_seconds": {
+    "feature_generation": 0.39505416702013463,
+    "fit_and_predict": 0.07737158297095448,
+    "total": 1.835098750074394
+  },
+  "source_sha256": {
+    "scripts/baseline.py": "bd30e87bf72a0c0a0612d798e9bf31b9635ebe107660fea6d9806fc85850b138",
+    "data/traning_data/payments.py": "611d7d59b051bf9bcc72fe8c3ee76f440a4a3f1d4aca7ea05efa4bda8979b633",
+    "data/traning_data/starter_notebook.ipynb": "3bffc46eff267f46abe3a2153a8c8d13675ae7d76b7929d0bebf3644185eb592",
+    "data/traning_data/train/transactions.parquet": "d592b91c766a408fb7da5c54c04f36f358dcf137ba6ef870575f22e0900ff783",
+    "data/traning_data/train/labels.csv": "48536b768622b0dc61ee487f750c874f1d9dbc820fc1c30ccc1af87db395a94b",
+    "data/traning_data/train/market_rates.csv": "cf596d85265294c9faa9bd707739c14d4e11d20a6e3ce4e3b507488c79ed6458",
+    "requirements-baseline.txt": "77ecb1bfe10e56b99b55550eae3e63c059419c01fea6344d3a5ada3542085ed4"
+  },
+  "artifact_sha256": {
+    "split.csv": "ddbdd169300a2fb65da46971f2b516c2aa2c82556281e280fd1f4b46442523ad",
+    "holdout_predictions.csv": "46d6f13cfc93ec31f7a8f0fbbcdd6c717f36b20eb42c52b0832af40317e49618"
+  },
+  "limitations": [
+    "One fixed holdout; no uncertainty estimate or hyperparameter search",
+    "Purging removes many payments and truncates graphs/scenarios",
+    "Holdout is an induced subgraph, not an independent complete synthetic week",
+    "Offline features use later events within their own partition; not a causal benchmark",
+    "Only labelled train inputs used; no validation/test inference or competition score"
+  ]
+}
