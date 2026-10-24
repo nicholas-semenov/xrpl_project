@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.model_selection import StratifiedGroupKFold
+from joblib import Parallel, delayed
 from threadpoolctl import threadpool_limits
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,11 +35,13 @@ from feature_workspace.score_context import ScoreContext  # noqa: E402
 from scripts.baseline import evaluate, isolated_split, require, validate_predictions  # noqa: E402
 
 TRAIN = ROOT / "data/traning_data/train"
-FEATURE_RUN = "aml_features_v1"
+FEATURE_RUN = "aml_features_v2"
 TABLE_RUN = "transaction_tables_v1"
 SEED = 0
 N_FOLDS = 5
 THREADS = None  # all cores; a repeat run checks scores do not depend on thread scheduling
+N_JOBS = 5           # parallel processes for independent folds / stress tests
+THREADS_PER_JOB = 2
 MODEL_PARAMS = dict(learning_rate=0.05, max_iter=400, max_leaf_nodes=31, min_samples_leaf=20,
                     l2_regularization=1.0)
 ANNOTATIONS = ("is_suspicious", "family", "difficulty", "scenario_id", "cohort_id")
@@ -84,6 +87,12 @@ def two_stage_eval(x: pd.DataFrame, y: np.ndarray, groups: np.ndarray, context: 
     return stage1[eval_rows], stage2
 
 
+def _limited(function, *args):
+    """Run one parallel job with a bounded OpenMP/BLAS thread pool."""
+    with threadpool_limits(limits=THREADS_PER_JOB):
+        return function(*args)
+
+
 def holdout_metrics(index: pd.Index, scores: np.ndarray, targets: pd.Series) -> dict:
     predictions = pd.DataFrame({"TRANSACTION_HASH": index, "score": scores})
     return evaluate(predictions, targets.loc[index])
@@ -92,11 +101,15 @@ def holdout_metrics(index: pd.Index, scores: np.ndarray, targets: pd.Series) -> 
 def grouped_cv(x, y, groups, context, annotations) -> tuple[dict, np.ndarray]:
     """Primary protocol: scenario-grouped stratified 5-fold CV on the full train week."""
     oof1, oof2, folds = np.zeros(len(y)), np.zeros(len(y)), []
-    outer = StratifiedGroupKFold(N_FOLDS, shuffle=True, random_state=SEED)
-    for k, (fit_rows, eval_rows) in enumerate(outer.split(x, y, groups)):
+    outer = list(StratifiedGroupKFold(N_FOLDS, shuffle=True, random_state=SEED).split(x, y, groups))
+    for fit_rows, eval_rows in outer:
         require(not set(groups[fit_rows]) & set(groups[eval_rows]), "Scenario shared across folds")
-        oof1[eval_rows], oof2[eval_rows] = two_stage_eval(x, y, groups, context, fit_rows,
-                                                          eval_rows, inner_seed=SEED + 1 + k)
+    # Outer folds are independent: run them in separate processes (each fit is deterministic).
+    results = Parallel(n_jobs=N_JOBS)(
+        delayed(_limited)(two_stage_eval, x, y, groups, context, fit_rows, eval_rows, SEED + 1 + k)
+        for k, (fit_rows, eval_rows) in enumerate(outer))
+    for k, ((fit_rows, eval_rows), (s1, s2)) in enumerate(zip(outer, results)):
+        oof1[eval_rows], oof2[eval_rows] = s1, s2
         folds.append({"rows": int(len(eval_rows)), "positives": int(y[eval_rows].sum()),
                       "stage1_ap": holdout_metrics(x.index[eval_rows], oof1[eval_rows], annotations.is_suspicious)["average_precision"],
                       "stage2_ap": holdout_metrics(x.index[eval_rows], oof2[eval_rows], annotations.is_suspicious)["average_precision"]})
@@ -206,7 +219,7 @@ def run(output_dir: Path, report_path: Path, validate: bool) -> dict:
     y = annotations.is_suspicious.to_numpy()
     groups = scenario_groups(annotations)
     context = ScoreContext(transactions)
-    report: dict = {"run_id": "aml_two_stage_hgb_v1", "seed": SEED, "model_parameters": MODEL_PARAMS,
+    report: dict = {"run_id": f"aml_two_stage_hgb_{FEATURE_RUN.removeprefix('aml_features_')}", "seed": SEED, "model_parameters": MODEL_PARAMS,
                     "algorithm": "sklearn HistGradientBoostingClassifier, two stages",
                     "n_features_stage1": x.shape[1]}
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -215,9 +228,12 @@ def run(output_dir: Path, report_path: Path, validate: bool) -> dict:
             report["grouped_cv"], oof = grouped_cv(x, y, groups, context, annotations)
             print("grouped CV", json.dumps(report["grouped_cv"]["stage2"]), flush=True)
             write_predictions(output_dir / "train_oof_predictions.csv", x.index, oof, x.index)
-            for key, recompute in (("wallet_stress_full_week", False), ("wallet_stress_isolated", True)):
-                report[key] = wallet_stress(transactions, x, y, groups, context, annotations, recompute)
-                print(key, json.dumps(report[key]["stage2"]), flush=True)
+            stress = Parallel(n_jobs=2)(
+                delayed(_limited)(wallet_stress, transactions, x, y, groups, context, annotations, recompute)
+                for recompute in (False, True))
+            for key, result in zip(("wallet_stress_full_week", "wallet_stress_isolated"), stress):
+                report[key] = result
+                print(key, json.dumps(result["stage2"]), flush=True)
         models = fit_final(x, y, groups, context)
         joblib.dump(models, output_dir / "models.joblib")
         test_transactions, x_test = load_world("test")
@@ -249,8 +265,8 @@ def run(output_dir: Path, report_path: Path, validate: bool) -> dict:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output-dir", type=Path, default=ROOT / "outputs/aml_two_stage_v1")
-    parser.add_argument("--report", type=Path, default=ROOT / "reports/aml_model_metrics.json")
+    parser.add_argument("--output-dir", type=Path, default=ROOT / "outputs/aml_two_stage_v2")
+    parser.add_argument("--report", type=Path, default=ROOT / "reports/aml_model_metrics_v2.json")
     parser.add_argument("--skip-validation", action="store_true",
                         help="Only fit the final model and write test predictions")
     args = parser.parse_args()

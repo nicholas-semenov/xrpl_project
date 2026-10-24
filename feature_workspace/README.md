@@ -108,10 +108,10 @@ Full train graphs are for offline analysis. For future supervised validation, re
 ## AML behaviour, flow and motif features
 
 ```sh
-.venv/bin/python -m feature_workspace.aml_features          # all three splits, ~15 s each
+.venv/bin/python -m feature_workspace.aml_features --run-name aml_features_v2   # all three splits, ~30 s each
 ```
 
-`aml_features.compute_features(transactions)` takes one split's canonical table (the 15 columns above) and returns one float row per `TRANSACTION_HASH`, in input order. It reads no labels, annotations or legs. Hashes only break equal-timestamp ties. Each split is processed alone, using its whole seven-day window (offline context is allowed by the supplied README). Output: `generated/aml_features_v1/{split}/features.parquet` (198 features), re-read and compared after writing.
+`aml_features.compute_features(transactions)` takes one split's canonical table (the 15 columns above) and returns one float row per `TRANSACTION_HASH`, in input order. It reads no labels, annotations or legs. Hashes only break equal-timestamp ties. Each split is processed alone, using its whole seven-day window (offline context is allowed by the supplied README). Output: `generated/aml_features_v2/{split}/features.parquet` (243 features), re-read and compared after writing. `aml_features_v1` (198 features, the first leaderboard submission) lacks the local-structure group.
 
 | Group | Examples |
 |---|---|
@@ -120,10 +120,11 @@ Full train graphs are for offline analysis. For future supervised validation, re
 | Windows (10 m, 1 h, 6 h, 24 h) | sender out / receiver in counts and distinct counterparties; sender receipts *before* and receiver forwards *after* (count, USD ratio, distinct) |
 | Pass-through | gaps to adjacent events, similar-value (±10%) forwards/receipts, forwarded fraction within 6 h, amount CV within ±1 h |
 | Motifs (bounded) | amount-consistent temporal chains (next hop within 1 h/6 h, 0.5–2× value) via DP; cycles back to the sender (≤8 hops, ≤6 h, ≤4,000 expansions); scatter-gather and gather-scatter reconvergence; bipartite butterflies; fan-out recipients forwarding within 1 h; nearby motif maxima |
+| Local structure (v2) | common neighbours and Jaccard of sender/receiver counterparties (±1 h/3 h); ego subgraph (endpoints plus their counterparties, ±30 m/1 h/3 h/6 h): edges, density, tempo, conversion share; flow clusters of amount-consistent forwards ≤30 m/2 h/6 h apart: size, span, wallets, tempo, conversion share, amount spread, value retained |
 | Tempo / burst clusters | k-th nearest event gaps, activity vs the wallet's weekly rate, and connected components of payments linked by consecutive same-wallet events ≤ 2/5/10/15 min apart (size, span, tempo, wallets, density, conversion share, amount spread, endpoint roles) |
 
 Strictly later hops need strictly greater timestamps. Ratios with zero denominators are NaN (handled natively by the model). Fee, amount-decimal and hour-of-day features were removed after a 3-seed grouped-CV ablation showed no gain; they are also the least likely to carry over to another week.
 
-`score_context.ScoreContext(transactions)` precomputes, per payment, its neighbour lists within the same split: same-wallet events within ±1 h/±6 h (also split by direction), receiver forwards and sender receipts within 6 h, amount-consistent chain neighbours, and burst-cluster members (5/15 min), always excluding the payment itself. `aggregate(scores)` returns the max and mean of the neighbours' scores. The scores passed in must not be fitted on the scored rows' labels. `scripts/aml_model.py` guarantees this with nested out-of-fold scores.
+`score_context.ScoreContext(transactions)` precomputes, per payment, its neighbour lists within the same split: same-wallet events within ±1 h/±6 h (also split by direction), receiver forwards and sender receipts within 6 h, amount-consistent chain neighbours, and burst-cluster members (5/15 min), ego-subgraph members (±1 h) and flow-cluster members (2 h), always excluding the payment itself. `aggregate(scores)` returns the max and mean of the neighbours' scores. The scores passed in must not be fitted on the scored rows' labels. `scripts/aml_model.py` guarantees this with nested out-of-fold scores.
 
 Tests: `tests/test_aml_features.py` covers toy cycles/chains with causal ordering, amount-inconsistent hops, repeated pairs and fans, burst linkage scales, invariance to input order and to extra label columns, issuer-role coding, context self-exclusion and coverage, scenario grouping, and the prediction CSV round trip.

@@ -1,36 +1,34 @@
 # Project Progress — XRPL AML Scoring
 
 ## Current status
-- Stage: Prediction. A validated two-stage AML model has produced a checked test CSV.
-- Current objective: Improve AP on decoy look-alike scenarios and on hard relay positives; optionally package the submission ZIP.
-- Last verified working outcome (2026-10-24): `scripts/aml_model.py` wrote `outputs/aml_two_stage_v1/predictions.csv` (40,101 rows, all checks pass, byte-identical on repeat); 34/34 tests pass.
+- Stage: Prediction (iteration 2). v1 scored 64.11 on the leaderboard; v2 (local-structure features) is validated and ready to upload.
+- Current objective: Upload v2 and compare; further gains need medium positives and decoy separation (hard relays look undetectable by design).
+- Last verified working outcome (2026-10-24): `scripts/aml_model.py` wrote `outputs/aml_two_stage_v2/predictions.csv` (40,101 rows, all checks pass, byte-identical on repeat and when rebuilt from `outputs/submission/submission_code_v2.zip`); 36/36 tests pass.
 
 ## Completed and verified
-- Earlier work (data audit, canonical payment preparation, wallet graphs, starter logistic baseline) was reproduced on this machine with identical metrics, hashes and reports.
-- `feature_workspace/aml_features.py`: 198 label-free features per payment, about 15 s per split. Groups: transaction, wallet/pair, 10m–24h windows, pass-through, chains, cycles, scatter-gather, butterflies, burst clusters and tempo. Outputs go to `generated/aml_features_v1/{split}/`.
-- `feature_workspace/score_context.py`: max/mean of neighbours' stage-1 scores (same-wallet events, chain neighbours, burst members), excluding the payment itself.
-- `scripts/aml_model.py`: grouped CV, two wallet stress tests, final fit, test inference and a strict CSV write/re-read. Writes `reports/aml_model_metrics.json`.
-- `tests/test_aml_features.py` (8 tests): causal cycles/chains, fans, burst scales, order/label-column invariance, issuer roles, context self-exclusion, CSV round trip.
+- v1 (commit 68a3d25): 198 features plus a stage-2 score context. Leaderboard **64.11** (top-1% precision 95%, recall 30%; easy 50%, medium 10%, observable hard 0%, ambiguous 0% inside the top 1%).
+- v2: +45 local-structure features in `feature_workspace/aml_features.py` (`_structure_features`): common neighbours/Jaccard, ego-subgraph edges/density/tempo/conversion (30m–6h), and flow clusters of amount-consistent forwards (30m/2h/6h). `score_context.py` adds ego-1h and flow-2h neighbour contexts. 243 features in `generated/aml_features_v2/`.
+- `scripts/aml_model.py` runs outer folds and the two stress tests in parallel processes (joblib, 2 threads each). Fold metrics are identical to the sequential run; the full run takes about 3.3 min.
+- Submission ZIPs: `outputs/submission/submission_code.zip` (v1), `outputs/submission/submission_code_v2.zip` (0.12 MiB, 34 files, with LICENSE (MIT) and ATTRIBUTION.md).
+- Tests: `tests/test_aml_features.py` now has 10 tests (adds dense-motif-vs-star ego and flow-cluster tests).
 
 ## Decisions and assumptions
-- Whole-week, label-free context per split (allowed by the dataset README). Splits are never mixed; issuer addresses differ per split, so issuers are coded by role (GBP issuer / EUR issuer).
-- Primary validation: StratifiedGroupKFold(5, seed 0) grouped by `scenario_id` (scenarios are label-pure). Folds and diagnostics are the only use of annotations.
-- Stage-2 context for labelled rows uses nested inner-OOF stage-1 scores; for test rows it uses a train-fitted stage-1 model.
-- Removed after 3-seed ablation (no gain; transfer risk): fee drops, amount decimals, hour of day. Burst-cluster features are the strongest group: removing them costs about 0.035 AP.
-- HistGradientBoosting kept: LightGBM was within ±0.01 AP, and keeping HistGradientBoosting adds no dependency (LightGBM was uninstalled again).
-- Model selection used the same grouped CV, so that figure is mildly optimistic.
+- Whole-week, label-free context per split; issuers are coded by role, since addresses differ per split.
+- Primary validation: StratifiedGroupKFold(5) grouped by `scenario_id`; stage-2 context uses nested inner-OOF scores.
+- Kept via 3-seed ablation: burst clusters (−0.035 if removed), ego/common-neighbour features (−0.033), flow clusters (−0.013). Removed: fee, decimals, hour of day, ego isolation/amount CV/sender and receiver counts.
+- HistGradientBoosting defaults kept: 63 leaves, LightGBM, lower LR and feature subsampling were all within ±0.01.
+- Stage 1 and stage 2 are about tied on v2 grouped CV (seed 0: 0.616/0.608; seed 1: 0.617/0.629); stage 2 is kept because it is better on the stress tests and was used for 64.11.
+- Hard relay: 12 cohorts × 100 template-matched scenarios, exactly 1 planted per cohort; no scenario aggregate (growth, counterparty Jaccard, degrees, timing, values) consistently separates it.
 
 ## Results and checks
-- Grouped CV: stage 1 AP 0.5792; **stage 2 AP 0.5942**; ROC-AUC 0.8963; top-1% precision 0.871 (350/402); fold AP 0.573–0.661.
-- Baseline wallet split, full-week features: AP 0.4600. The like-for-like isolated version (features recomputed per subset) gives **0.2592**, against the starter baseline's 0.0836 on the same 10,112 rows.
-- Median positive rank percentile: easy 0.987, medium 0.922, hard 0.619. Relay hard positives are near chance.
-- Test predictions: 40,101 distinct scores in [5.9e-5, 0.998]; 1.83% above 0.5 (train OOF 2.04%); SHA-256 a73fdac868e6f70702611c813972e29ad061d760c359a08de87b78c874d1a41f.
-- Working commands (verified): `.venv/bin/python -m feature_workspace.prepare_transactions`; `.venv/bin/python -m feature_workspace.build_wallet_graph`; `.venv/bin/python -m feature_workspace.aml_features`; `.venv/bin/python scripts/aml_model.py` (~5.5 min; `--skip-validation` ~1 min); `.venv/bin/python scripts/baseline.py`; `.venv/bin/python -m unittest discover -s tests` (34 OK).
-- Environment on this machine: conda env `xrpl-py310` (Python 3.10.15) → `.venv` with `requirements-baseline.txt`. The system python3 is 3.14 and must not be used.
+- v2 grouped CV: stage 1 0.6160, **stage 2 0.6076** (v1 0.5942); ROC-AUC 0.9002; top-1% precision 0.853. Fold APs 0.564–0.725.
+- v2 wallet stress, full-week features: **0.5053** (v1 0.4600). Isolated features: **0.2979** (v1 0.2592; starter 0.0836).
+- v2 test predictions: SHA-256 3ac342c6885401170c4c8fc7a62fca1a336f2b89793c2cc326d23ceeb6f5cbe2; 1.76% of scores above 0.5. Spearman vs v1 0.82; top-402 overlap 338.
+- Working commands: `.venv/bin/python -m feature_workspace.prepare_transactions`; `.venv/bin/python -m feature_workspace.aml_features --run-name aml_features_v2`; `.venv/bin/python scripts/aml_model.py` (`--skip-validation` ~1 min); `.venv/bin/python -m unittest discover -s tests` (36 OK).
+- Environment: conda env `xrpl-py310` (Python 3.10.15) → `.venv` with `requirements-baseline.txt`. The system python3 is 3.14 and must not be used.
 
 ## Git synchronization
-- Branch/upstream: master / origin/master. The session-start `git pull --ff-only` fast-forwarded 62730a8 → 9faef27.
-- The user had asked to skip routine git steps, then asked to publish the project: the AML-model work was committed on master and pushed, with full history (including data/), to the new remote `xrpl_project` (https://github.com/nicholas-semenov/xrpl_project.git) on 2026-10-24. `origin` (xrpl) was not updated.
+- The user handles git: they pushed 68a3d25 plus their own "test" commits (through ceb51e9) to `xrpl_project`, and trimmed `.gitignore` to `.venv/`. The v2 changes are uncommitted; per user instruction the agent does not commit or push.
 
 ## Blockers / risks
 - Test "batch variations absent from training" (dataset README) may shift feature distributions. Not measurable without a leaderboard upload, and nothing has been uploaded.
@@ -38,13 +36,13 @@
 - Relay hard positives (200 of 1,250) show no signal yet; the 25 ambiguous positives are unpredictable by design.
 
 ## Next actions (in priority order)
-1. Scenario-level reconstruction features (motif tempo/value retention per burst) to separate decoys from planted motifs; check with 3-seed grouped CV.
-2. Investigate relay hard cases using longer-history aggregates per hub (counterparty change across rounds).
-3. Package the code ZIP (README, requirements, LICENSE, attribution list) if the user wants to submit.
+1. Upload `outputs/aml_two_stage_v2/predictions.csv` and `outputs/submission/submission_code_v2.zip`; record the score here.
+2. Medium positives (median rank 0.93): slow motifs (15–28 min gaps); try scenario-like grouping at larger scales and stage-1/stage-2 blending, checked with 2–3 seeds in parallel.
+3. Decoy vs planted motifs: compare per-family tempo/value statistics of the reconstructed structures.
 
 ## Important paths
 - feature_workspace/aml_features.py, feature_workspace/score_context.py, scripts/aml_model.py, tests/test_aml_features.py
-- reports/aml_model_metrics.json — all measured metrics, parameters, versions, hashes.
-- outputs/aml_two_stage_v1/{predictions.csv, train_oof_predictions.csv, models.joblib, metrics.json} (git-ignored).
+- reports/aml_model_metrics.json (v1), reports/aml_model_metrics_v2.json (v2) — measured metrics, parameters, versions, hashes.
+- outputs/aml_two_stage_v1/ (64.11 submission) and outputs/aml_two_stage_v2/ — predictions, OOF, models, metrics; outputs/submission/ — code ZIPs.
 - feature_workspace/generated/{transaction_tables_v1, wallet_graphs_v1, aml_features_v1}/ (git-ignored).
 - scripts/baseline.py, reports/baseline_metrics.json — preserved starter baseline.

@@ -1,30 +1,32 @@
 # XRPL AML scoring
 
-## Current model: two-stage AML scorer (`aml_two_stage_hgb_v1`)
+## Current model: two-stage AML scorer (`aml_two_stage_hgb_v2`)
 
-Produce the test predictions CSV from the supplied data (Python 3.10.15, `requirements-baseline.txt`; about 6 minutes and under 2 GB RAM on an Apple M-series arm64 laptop, of which validation is about 5). First unpack the organiser packages so that `data/traning_data/` holds the training package (`train/`, `validation/`, `payments.py`) and `data/test_data/` holds the four test files. Licence: [MIT](LICENSE); third-party code, libraries and AI assistance are listed in [ATTRIBUTION.md](ATTRIBUTION.md).
+Produce the test predictions CSV from the supplied data (Python 3.10.15, `requirements-baseline.txt`; about 5 minutes and under 2 GB RAM per process on an Apple M-series arm64 laptop, of which validation is about 3; folds run in 5 parallel processes). First unpack the organiser packages so that `data/traning_data/` holds the training package (`train/`, `validation/`, `payments.py`) and `data/test_data/` holds the four test files. Licence: [MIT](LICENSE); third-party code, libraries and AI assistance are listed in [ATTRIBUTION.md](ATTRIBUTION.md).
 
 ```sh
 python3.10 -m venv .venv
 .venv/bin/python -m pip install --no-cache-dir -r requirements-baseline.txt
-.venv/bin/python -m feature_workspace.prepare_transactions   # canonical payments, all splits
-.venv/bin/python -m feature_workspace.aml_features           # 198 label-free features per payment
-.venv/bin/python scripts/aml_model.py                        # validate, fit, write predictions
-# writes outputs/aml_two_stage_v1/predictions.csv (TRANSACTION_HASH,score; 40,101 rows)
+.venv/bin/python -m feature_workspace.prepare_transactions                      # canonical payments, all splits
+.venv/bin/python -m feature_workspace.aml_features --run-name aml_features_v2   # 243 label-free features per payment
+.venv/bin/python scripts/aml_model.py                                           # validate, fit, write predictions
+# writes outputs/aml_two_stage_v2/predictions.csv (TRANSACTION_HASH,score; 40,101 rows)
 # add --skip-validation to only fit and predict (~1 minute)
 ```
 
-Method: stage 1 is a `HistGradientBoostingClassifier` (learning rate 0.05, 400 iterations, 31 leaves, min leaf 20, L2 1.0, seed 0) on the [AML features](feature_workspace/README.md#aml-behaviour-flow-and-motif-features). These cover wallet and pair behaviour, windowed pass-through flows, amount-consistent temporal chains, cycles, scatter-gather, bipartite butterflies and multi-scale burst clusters. Stage 2 is the same estimator with extra features: the max and mean stage-1 scores of each payment's graph neighbours (same-wallet events, chain neighbours, burst-cluster members). For labelled rows those stage-1 scores are nested out-of-fold, so no context feature contains a score fitted on that row's own label. Test features and contexts are computed only from the test week. The whole supplied window is used, as the dataset README allows (offline investigation, not causal live detection). Labels and scenario/cohort IDs never enter features. Scenario IDs only define CV folds.
+Method: stage 1 is a `HistGradientBoostingClassifier` (learning rate 0.05, 400 iterations, 31 leaves, min leaf 20, L2 1.0, seed 0) on the [AML features](feature_workspace/README.md#aml-behaviour-flow-and-motif-features). These cover wallet and pair behaviour, windowed pass-through flows, amount-consistent temporal chains, cycles, scatter-gather, bipartite butterflies, multi-scale burst clusters and, new in v2, local subgraph structure: sender/receiver common neighbours, ego-subgraph density/tempo, and amount-consistent flow clusters. Stage 2 is the same estimator with extra features: the max and mean stage-1 scores of each payment's graph neighbours (same-wallet events, chain neighbours, burst-cluster, ego-subgraph and flow-cluster members). For labelled rows those stage-1 scores are nested out-of-fold, so no context feature contains a score fitted on that row's own label. Test features and contexts are computed only from the test week. The whole supplied window is used, as the dataset README allows (offline investigation, not causal live detection). Labels and scenario/cohort IDs never enter features. Scenario IDs only define CV folds.
 
-Measured on labelled train only (`reports/aml_model_metrics.json`):
+Measured on labelled train only (`reports/aml_model_metrics_v2.json`; v1 in `reports/aml_model_metrics.json`):
 
-| Protocol | Stage-1 AP | Stage-2 AP | ROC-AUC | Top-1% precision |
-|---|---:|---:|---:|---:|
-| Scenario-grouped 5-fold CV, full train week (primary; closest to test conditions) | 0.5792 | **0.5942** | 0.8963 | 0.871 (350/402) |
-| Baseline wallet split, full-week features | 0.4436 | 0.4600 | 0.8356 | 0.735 (75/102) |
-| Baseline wallet split, features recomputed in isolated fit/holdout subsets (like-for-like with the baseline's 0.0836) | 0.2526 | **0.2592** | 0.7789 | 0.549 (56/102) |
+| Protocol | v1 stage-2 AP | v2 stage-1 AP | v2 stage-2 AP | v2 ROC-AUC | v2 top-1% precision |
+|---|---:|---:|---:|---:|---:|
+| Scenario-grouped 5-fold CV, full train week (primary) | 0.5942 | 0.6160 | **0.6076** | 0.9002 | 0.853 (343/402) |
+| Baseline wallet split, full-week features | 0.4600 | 0.4815 | **0.5053** | 0.8458 | 0.765 (78/102) |
+| Baseline wallet split, isolated fit/holdout features (like-for-like with the starter's 0.0836) | 0.2592 | 0.2986 | **0.2979** | 0.8011 | 0.667 (68/102) |
 
-Stage-2 fold APs range from 0.573 to 0.661 (mean 0.602, std 0.031). Median positive rank percentile: easy 0.987, medium 0.922, hard 0.619. The hard relay families score near chance, and the 25 "ambiguous" positives are label-independent by design. Main remaining errors are planted look-alike (decoy) scenarios and background payments that touch a motif wallet during a burst. A repeat `--skip-validation` run reproduced a byte-identical predictions CSV (SHA-256 `a73fdac8…`). Multi-threaded and single-threaded runs gave identical fold metrics. Model selection (feature-group ablation and a HistGradientBoosting vs LightGBM comparison, all within ±0.01 AP) used the same grouped CV. That makes the grouped-CV figure somewhat optimistic; the wallet-isolated figure is a pessimistic stress test because 62% of rows are purged. No test leaderboard score has been measured.
+**Leaderboard (test):** v1 predictions (reproducible from commit `68a3d25`, where the code still builds `aml_features_v1`) scored **64.11** (precision 95% / recall 30% in the top 1%; easy 50%, medium 10%, observable hard 0%, ambiguous 0% of each type inside the top 1%). v2 had not been uploaded when this was written.
+
+v2 stage-2 fold APs: 0.659, 0.596, 0.725, 0.564, 0.598 (mean 0.628, std 0.057). With a second fold seed, stage 1 vs stage 2 was 0.6166 vs 0.6290, so the two stages are about tied on grouped CV, while stage 2 is ahead on the wallet stress test. Median positive rank percentile: easy 0.988, medium 0.931, hard 0.622. The 12 hard relay cohorts each hold 100 template-matched scenarios with one planted; no scenario-level aggregate we tried separates it, and the 25 "ambiguous" positives are label-independent by design. A repeat `--skip-validation` run reproduced a byte-identical CSV (SHA-256 `3ac342c6…`). Parallel and sequential runs gave identical fold metrics. Feature and model selection used the same grouped CV (3-seed ablations; HistGradientBoosting vs LightGBM and hyperparameter variants all within ±0.01 AP), so that figure is somewhat optimistic; the wallet-isolated figure is a pessimistic stress test because 62% of rows are purged.
 
 The earlier starter baseline below is preserved unchanged for comparison.
 

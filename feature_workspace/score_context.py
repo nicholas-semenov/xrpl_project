@@ -68,6 +68,31 @@ class ScoreContext:
         lists["chain_6h"] = [np.concatenate([succ[e], np.asarray(pred[e], dtype="int64")])
                              for e in range(n)]
 
+        # Ego subgraph (+-1 h): payments among the endpoints and their counterparties then.
+        ego = []
+        for e in range(n):
+            lo, hi = t[e] - 3600, t[e] + 3600
+            nodes = {s[e], r[e]}
+            for w in (s[e], r[e]):
+                nodes.update(r[out_ev.span(w, t, lo, hi)].tolist())
+                nodes.update(s[in_ev.span(w, t, lo, hi)].tolist())
+            members = [int(pos) for w in nodes for pos in out_ev.span(w, t, lo, hi)
+                       if r[pos] in nodes and pos != e]
+            ego.append(np.asarray(members, dtype="int64"))
+        lists["ego_1h"] = ego
+
+        # Flow cluster: components of amount-consistent forwards at most 2 h apart.
+        parent = np.arange(n)
+        for e in range(n):
+            for q in succ[e]:
+                if t[q] - t[e] <= 7200:
+                    rx, ry = _find(parent, e), _find(parent, int(q))
+                    if rx != ry:
+                        parent[ry] = rx
+        root = np.array([_find(parent, e) for e in range(n)])
+        members = pd.Series(np.arange(n)).groupby(root).apply(np.asarray).to_dict()
+        lists["flow_2h"] = [members[root[e]][members[root[e]] != e] for e in range(n)]
+
         # Burst-cluster members (same linkage rule as the tempo features), excluding self.
         links = []
         for w in range(nw):

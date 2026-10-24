@@ -1,0 +1,17 @@
+fold 0: {"rows": 8193, "positives": 185, "stage1_ap": 0.6617976101997614, "stage2_ap": 0.6588572707920894}
+fold 1: {"rows": 7933, "positives": 263, "stage1_ap": 0.5601139034732999, "stage2_ap": 0.5956593979857663}
+fold 2: {"rows": 7995, "positives": 209, "stage1_ap": 0.7114623896117674, "stage2_ap": 0.7251274499008987}
+fold 3: {"rows": 8004, "positives": 346, "stage1_ap": 0.5809436561064196, "stage2_ap": 0.5635882216546088}
+fold 4: {"rows": 8006, "positives": 247, "stage1_ap": 0.6464449016329598, "stage2_ap": 0.5984227829472331}
+grouped CV {"average_precision": 0.6076005608951688, "challenge_score_100_ap": 60.76005608951688, "roc_auc": 0.9002006121241736, "precision_at_1pct": 0.8532338308457711, "recall_at_1pct": 0.2744, "top_1pct_count": 402, "top_1pct_true_positives": 343, "holdout_positives": 1250, "holdout_positive_fraction": 0.0311479903316638, "score_min": 3.3060706562059524e-05, "score_max": 0.9984159106439652, "distinct_scores": 40131}
+wallet_stress_full_week {"average_precision": 0.5053339247668073, "challenge_score_100_ap": 50.533392476680724, "roc_auc": 0.8458232262564419, "precision_at_1pct": 0.7647058823529411, "recall_at_1pct": 0.29770992366412213, "top_1pct_count": 102, "top_1pct_true_positives": 78, "holdout_positives": 262, "holdout_positive_fraction": 0.025909810126582278, "score_min": 2.732581805492126e-06, "score_max": 0.9997938098729391, "distinct_scores": 10112}
+wallet_stress_isolated {"average_precision": 0.2978822933781264, "challenge_score_100_ap": 29.788229337812638, "roc_auc": 0.8011400007749835, "precision_at_1pct": 0.6666666666666666, "recall_at_1pct": 0.2595419847328244, "top_1pct_count": 102, "top_1pct_true_positives": 68, "holdout_positives": 262, "holdout_positive_fraction": 0.025909810126582278, "score_min": 2.010579212079391e-06, "score_max": 0.9992272365737267, "distinct_scores": 10112}
+{
+  "rows": 40101,
+  "distinct_scores": 40101,
+  "min": 4.210429020440233e-05,
+  "max": 0.9985046317048626,
+  "mean": 0.020331033720277485,
+  "share_above_0.5": 0.017605545996359193,
+  "sha256": "3ac342c6885401170c4c8fc7a62fca1a336f2b89793c2cc326d23ceeb6f5cbe2"
+}

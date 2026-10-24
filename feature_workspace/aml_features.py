@@ -165,6 +165,85 @@ def _tempo_features(s: np.ndarray, r: np.ndarray, t: np.ndarray, a: np.ndarray,
     return out
 
 
+def _structure_features(s: np.ndarray, r: np.ndarray, t: np.ndarray, a: np.ndarray,
+                        conversion: np.ndarray, out_ev: "_Events", in_ev: "_Events",
+                        succs: list[np.ndarray]) -> dict[str, np.ndarray]:
+    """Local subgraph density and amount-consistent flow clusters around each payment.
+
+    Planted motifs are small dense subgraphs, while background payments touching a
+    motif wallet are star-like; flow clusters link only chain-consistent forwards,
+    so slow motifs stay separable without percolating through background traffic.
+    Ego isolation, amount CV and sender/receiver counts were tried and removed
+    (3-seed grouped CV: 0.6163 without vs 0.6112 with).
+    """
+    n = len(t)
+    out: dict[str, np.ndarray] = {}
+
+    def counterparties(w: int, lo: float, hi: float) -> set:
+        return set(r[out_ev.span(w, t, lo, hi)].tolist()) | set(s[in_ev.span(w, t, lo, hi)].tolist())
+
+    for name, W in (("30m", 1800), ("1h", 3600), ("3h", 10800), ("6h", 21600)):
+        common = np.zeros(n)
+        jaccard = np.zeros(n)
+        ego_edges = np.zeros(n)
+        ego_wallets = np.zeros(n)
+        ego_tempo = np.full(n, np.nan)
+        ego_conv = np.zeros(n)
+        for e in range(n):
+            lo, hi = t[e] - W, t[e] + W
+            ns = counterparties(s[e], lo, hi) - {s[e], r[e]}
+            nr = counterparties(r[e], lo, hi) - {s[e], r[e]}
+            common[e] = len(ns & nr)
+            union = ns | nr
+            jaccard[e] = common[e] / len(union) if union else 0.0
+            nodes = union | {s[e], r[e]}
+            edges = set()
+            for w in nodes:
+                for pos in out_ev.span(w, t, lo, hi):
+                    if r[pos] in nodes:
+                        edges.add(int(pos))
+            ego_wallets[e] = len(nodes)
+            ego_edges[e] = len(edges)
+            if len(edges) > 1:
+                times = t[list(edges)]
+                ego_tempo[e] = (times.max() - times.min()) / 60 / (len(edges) - 1)
+            ego_conv[e] = conversion[list(edges)].mean()
+        out[f"common_neighbours_{name}"] = common
+        out[f"neighbour_jaccard_{name}"] = jaccard
+        out[f"ego_edges_{name}"] = ego_edges
+        out[f"ego_density_{name}"] = ego_edges / ego_wallets
+        out[f"ego_tempo_min_{name}"] = ego_tempo
+        out[f"ego_conversion_share_{name}"] = ego_conv
+
+    # Flow clusters: connected components of amount-consistent forwards within a gap.
+    log_a = np.log(a)
+    links = sorted((int(t[q] - t[e]), e, int(q)) for e in range(n) for q in succs[e])
+    parent = np.arange(n)
+    k = 0
+    for name, gap in (("30m", 1800), ("2h", 7200), ("6h", 21600)):
+        while k < len(links) and links[k][0] <= gap:
+            _, x, y = links[k]
+            rx, ry = _find(parent, x), _find(parent, y)
+            if rx != ry:
+                parent[ry] = rx
+            k += 1
+        root = np.array([_find(parent, e) for e in range(n)])
+        comp = pd.DataFrame({"root": root, "t": t, "la": log_a, "conv": conversion, "s": s, "r": r})
+        grouped = comp.groupby("root")
+        size = grouped.size()
+        span = grouped.t.max() - grouped.t.min()
+        wallets = pd.concat([comp[["root", "s"]].rename(columns={"s": "w"}),
+                             comp[["root", "r"]].rename(columns={"r": "w"})]).drop_duplicates().groupby("root").size()
+        stats = pd.DataFrame({"size": size, "span_min": span / 60, "wallets": wallets,
+                              "tempo_min": (span / 60) / (size - 1).where(size > 1),
+                              "conv_share": grouped.conv.mean(), "log_usd_std": grouped.la.std(),
+                              "value_retained": np.exp(grouped.la.last() - grouped.la.first())})
+        rows = stats.loc[root]
+        for column in stats.columns:
+            out[f"flow_{name}_{column}"] = rows[column].to_numpy(float)
+    return out
+
+
 def compute_features(transactions: pd.DataFrame) -> pd.DataFrame:
     """Compute features for one split's canonical payments, indexed by hash in input order."""
     require(set(COLUMNS) <= set(transactions.columns), "Missing canonical columns")
@@ -458,6 +537,8 @@ def compute_features(transactions: pd.DataFrame) -> pd.DataFrame:
         f[f"r_nearby_max_{name}"] = r_max
 
     f.update(_tempo_features(s, r, t, a, df.IS_CONVERSION.to_numpy(float), nw))
+    f.update(_structure_features(s, r, t, a, df.IS_CONVERSION.to_numpy(float), out_ev, in_ev,
+                                 succ_cache["6h"]))
 
     result = pd.DataFrame(f, index=pd.Index(df.TRANSACTION_HASH, name="TRANSACTION_HASH"))
     result = result.loc[transactions.TRANSACTION_HASH]
@@ -469,7 +550,7 @@ def compute_features(transactions: pd.DataFrame) -> pd.DataFrame:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run-name", default="aml_features_v1")
+    parser.add_argument("--run-name", default="aml_features_v2")
     parser.add_argument("--splits", nargs="+", default=list(SPLITS))
     args = parser.parse_args()
     summary = {}
